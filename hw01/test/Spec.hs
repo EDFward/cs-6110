@@ -1,7 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
+import           Data.Maybe       (fromJust)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 
+import           Eval
 import           Expr
 import           Parser
 
@@ -9,7 +11,7 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [parserTests]
+tests = testGroup "Tests" [parserTests, substTests]
 
 parserTests = testGroup "Parse tests"
   [ testCase "Parsing variable" $
@@ -32,4 +34,22 @@ parserTests = testGroup "Parse tests"
   , testCase "Omega" $
       parse "(λx.xx)(λx.xx)" @?=
         (Just $ App (Lam "x" (App (Var "x") (Var "x"))) (Lam "x" (App (Var "x") (Var "x"))))
+  ]
+
+-- Shorthand to get parsed expr from a string.
+p = fromJust . parse
+
+substTests = testGroup "Subst tests"
+  [ testCase "Subst var - change" $
+      subst "x" (p "λx.xx") (p "x") @?= (p "λx.xx")
+  , testCase "Subst var - no change" $
+      subst "x" (p "λx.xx") (p "y") @?= (p "y")
+  , testCase "Subst lambda - substitute arg" $
+      subst "x" (p "y") (p "λx.xx") @?= (p "λx.xx")
+  , testCase "Subst lambda - substitute a non-free var in body" $
+      subst "y" (p "z") (p "λx.λy.xy") @?= (p "λx.λy.xy")
+  , testCase "Subst lambda - substitute a free var in body" $
+      subst "y" (p "z") (p "λx.xy") @?= (p "λx.xz")
+  , testCase "Subst lambda - substitute a free var in body with new name" $
+      subst "y" (p "x") (p "λx.xy") @?= (p "λa.ax")
   ]
