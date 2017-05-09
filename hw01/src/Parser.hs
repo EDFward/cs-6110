@@ -4,6 +4,7 @@ module Parser
 
 import           Control.Applicative
 import           Data.Char                    (isAsciiLower)
+import           Data.List                    (find)
 import           Text.ParserCombinators.ReadP
 
 import           Expr

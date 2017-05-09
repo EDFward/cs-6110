@@ -11,7 +11,7 @@ main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [parserTests, substTests]
+tests = testGroup "Tests" [parserTests, substTests, betaReductionCBVTests]
 
 parserTests = testGroup "Parse tests"
   [ testCase "Parsing variable" $
@@ -52,4 +52,15 @@ substTests = testGroup "Subst tests"
       subst "y" (p "z") (p "λx.xy") @?= (p "λx.xz")
   , testCase "Subst lambda - substitute a free var in body with new name" $
       subst "y" (p "x") (p "λx.xy") @?= (p "λa.ax")
+  ]
+
+betaReductionCBVTests = testGroup "beta reduction tests - call by value"
+  [ testCase "Example 1" $
+      betaStepCBV (p "(λx.λy.x)(λz.z)(λu.λv.u)") @?= (p "(λy.λz.z)(λu.λv.u)")
+  , testCase "Example 2" $
+      betaStepCBV (p "(λy.λz.z)(λu.λv.u)") @?= (p "λz.z")
+  , testCase "Example 3" $
+      betaStepCBV (p "λz.z") @?= (p "λz.z")
+  , testCase "Omega" $
+      betaStepCBV (p "(λx.xx)(λx.xx)") @?= (p "(λx.xx)(λx.xx)")
   ]

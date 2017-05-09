@@ -28,3 +28,12 @@ subst n v e@(Lam n' body)
   | otherwise                    =
     let newName = freshVar (Set.union (freeVar v) (freeVar e))
     in Lam newName (subst n v (subst n' (Var newName) body))
+
+-- Beta reduction for call-by-value.
+betaStepCBV :: Expr -> Expr
+betaStepCBV e@(Var _)                   = e
+betaStepCBV e@(Lam _ _)                 = e
+betaStepCBV (App expr1 expr2@(App _ _)) = App expr1 (betaStepCBV expr2)
+betaStepCBV (App expr1@(App _ _) expr2) = App (betaStepCBV expr1) expr2
+betaStepCBV e@(App (Var _) _)           = e
+betaStepCBV (App (Lam n body) expr)     = subst n expr body
