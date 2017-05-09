@@ -35,5 +35,5 @@ betaStepCBV e@(Var _)                   = e
 betaStepCBV e@(Lam _ _)                 = e
 betaStepCBV (App expr1 expr2@(App _ _)) = App expr1 (betaStepCBV expr2)
 betaStepCBV (App expr1@(App _ _) expr2) = App (betaStepCBV expr1) expr2
-betaStepCBV e@(App (Var _) _)           = e
+betaStepCBV e@(App (Var _) _)           = error "Can't do β reduce"
 betaStepCBV (App (Lam n body) expr)     = subst n expr body
